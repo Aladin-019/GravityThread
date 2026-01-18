@@ -1,0 +1,20 @@
+{
+  "number": 1,
+  "celestialBodies": [
+    {
+      "x": 800,
+      "y": 300,
+      "radius": 60,
+      "mass": 10000
+    }
+  ],
+  "greenZone": {
+    "top": 225,
+    "bottom": 375,
+    "width": 20
+  },
+  "shipStart": {
+    "x": 150,
+    "y": 300
+  }
+}

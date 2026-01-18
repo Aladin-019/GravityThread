@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rocket Thread !</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Gravity Thread</h1>
+        <canvas id="gameCanvas"></canvas>
+        <div class="instructions">
+            <p>Click near the rocket and drag to aim, then release to launch!</p>
+        </div>
+    </div>
+    <!-- Load MVC files in order -->
+    <script src="model/GameModel.js"></script>
+    <script src="view/Renderer.js"></script>
+    <script src="controller/GameController.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
