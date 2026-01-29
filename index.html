@@ -9,15 +9,19 @@
 <body>
     <div class="container">
         <h1>Gravity Thread</h1>
-        <canvas id="gameCanvas"></canvas>
+        <div id="gameContainer"></div>
         <div class="instructions">
             <p>Click near the rocket and drag to aim, then release to launch!</p>
         </div>
     </div>
-    <!-- Load MVC files in order -->
-    <script src="model/GameModel.js"></script>
-    <script src="view/Renderer.js"></script>
-    <script src="controller/GameController.js"></script>
+    <!-- Phaser 3 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    
+    <!-- Load Phaser scenes and managers -->
+    <script src="scenes/MenuScene.js"></script>
+    <script src="scenes/GameScene.js"></script>
+    <script src="scenes/GameOverScene.js"></script>
+    <script src="managers/LevelManager.js"></script>
     <script src="main.js"></script>
 </body>
 </html>
