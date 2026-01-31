@@ -10,6 +10,11 @@ class GameScene extends Phaser.Scene {
         this.levelNumber = data.levelNumber || 1;
     }
 
+    preload() {
+        // Load level-specific assets
+        this.load.json(`level${this.levelNumber}`, `levels/level${this.levelNumber}.json`);
+    }
+
     create() {
         this.cameras.main.setBackgroundColor('#0a0a1a');
         
@@ -18,9 +23,9 @@ class GameScene extends Phaser.Scene {
         this.initializeGame();
     }
     
-    async initializeGame() {
-        // Load level data
-        this.levelData = await LevelManager.loadLevel(this.levelNumber);
+    initializeGame() {
+        // Get preloaded level data
+        this.levelData = this.cache.json.get(`level${this.levelNumber}`);
         if (!this.levelData) {
             console.error('Failed to load level!');
             return;
@@ -43,11 +48,22 @@ class GameScene extends Phaser.Scene {
         }
         });
 
+        // Create green zone (win area)
+        const greenZone = this.levelData.greenZone;
+        const zoneX = this.cameras.main.width - greenZone.width;
+        const zoneY = greenZone.top;
+        const zoneHeight = greenZone.bottom - greenZone.top;
+        
+        this.greenZone = this.add.rectangle(zoneX, zoneY + zoneHeight/2, greenZone.width, zoneHeight, 0x00ff00);
+        this.greenZone.alpha = 0.3; // semi-transparent
+        this.physics.add.existing(this.greenZone, true);
+
+
+        // Pullback launch handlers
         this.isPullingBack = false;
         this.pullStartX = 0;
         this.pullStartY = 0;
 
-        // Pullback launch handlers
         this.input.on('pointerdown', (pointer) => {
             this.isPullingBack = true;
             this.pullStartX = pointer.x;
@@ -67,6 +83,13 @@ class GameScene extends Phaser.Scene {
 
     update() {
         if (!this.ship || !this.ship.body){
+            return;
+        }
+
+        // Ship in green zone check
+        if (this.physics.overlap(this.ship, this.greenZone)) {
+            console.log('Level completed!');
+            this.scene.start('GameOverScene', { won: true, levelNumber: this.levelNumber });
             return;
         }
 
