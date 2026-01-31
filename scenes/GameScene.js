@@ -10,9 +10,15 @@ class GameScene extends Phaser.Scene {
         this.levelNumber = data.levelNumber || 1;
     }
 
-    async create() {
+    create() {
         this.cameras.main.setBackgroundColor('#0a0a1a');
         
+        this.ship = null;
+        
+        this.initializeGame();
+    }
+    
+    async initializeGame() {
         // Load level data
         this.levelData = await LevelManager.loadLevel(this.levelNumber);
         if (!this.levelData) {
@@ -20,30 +26,71 @@ class GameScene extends Phaser.Scene {
             return;
         }
 
-        // Temporary game scene text
-        this.add.text(600, 50, `Level ${this.levelNumber} - Game Scene`, {
-            fontSize: '32px',
-            fontFamily: 'Arial',
-            color: '#ffffff'
-        }).setOrigin(0.5);
+        // Create ship
+        this.ship = this.add.rectangle(this.levelData.shipStart.x, this.levelData.shipStart.y, 15, 20, 0xff6600);
+        this.physics.add.existing(this.ship);
+        this.ship.body.setCollideWorldBounds(false);
 
-        this.add.text(600, 100, 'Game scene loaded!', {
-            fontSize: '18px',
-            fontFamily: 'Arial',
-            color: '#ffff00'
-        }).setOrigin(0.5);
+        // Create celestial bodies
+        this.Bodies = this.add.group();
+        this.levelData.celestialBodies.forEach(body => {
+        try {
+            const Body = this.add.circle(body.x, body.y, body.radius, parseInt(body.color, 16));
+            Body.mass = body.mass;
+            this.Bodies.add(Body);
+        } catch (e) {
+            console.error("Failed to parse level data:", error);
+        }
+        });
 
-        // Temporary back button
-        this.add.text(600, 500, 'Click to go back to menu', {
-            fontSize: '18px',
-            fontFamily: 'Arial',
-            color: '#ff0000'
-        }).setOrigin(0.5).setInteractive().on('pointerdown', () => {
-            this.scene.start('MenuScene');
+        this.isPullingBack = false;
+        this.pullStartX = 0;
+        this.pullStartY = 0;
+
+        // Pullback launch handlers
+        this.input.on('pointerdown', (pointer) => {
+            this.isPullingBack = true;
+            this.pullStartX = pointer.x;
+            this.pullStartY = pointer.y;
+        });
+        this.input.on('pointerup', (pointer) => {
+            if (this.isPullingBack) {
+                this.isPullingBack = false;
+
+                this.velocityX = this.pullStartX - pointer.x;
+                this.velocityY = this.pullStartY - pointer.y;
+
+                this.ship.body.setVelocity(this.velocityX, this.velocityY);
+            }
         });
     }
 
     update() {
-        // Game loop
+        if (!this.ship || !this.ship.body){
+            return;
+        }
+
+        // Apply gravity to ship if it's moving
+        if (this.ship.body.velocity.x !== 0 || this.ship.body.velocity.y !== 0) {
+            
+            this.Bodies.children.entries.forEach(planet => {
+                const dx = planet.x - this.ship.x;
+                const dy = planet.y - this.ship.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance > 20) {
+                    const force = (planet.mass * 2.0) / (distance * distance);
+
+                    const accelX = force * (dx / distance);
+                    const accelY = force * (dy / distance);
+
+                    // add to current velocity
+                    this.ship.body.setVelocity(
+                        this.ship.body.velocity.x + accelX,
+                        this.ship.body.velocity.y + accelY
+                    );
+                }
+            });
+        }
     }
 }

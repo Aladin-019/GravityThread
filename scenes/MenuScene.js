@@ -14,11 +14,13 @@ class MenuScene extends Phaser.Scene {
         
         // Handle click to continue
         this.input.on('pointerdown', () => {
+            console.log('MenuScene click - showingIntro:', this.showingIntro, 'currentLevel:', this.currentLevel);
             if (this.showingIntro) {
                 this.showingIntro = false;
                 this.showLevelScreen(1);
             } else {
                 // Start the game with the selected level
+                console.log('Starting GameScene with level:', this.currentLevel);
                 this.scene.start('GameScene', { levelNumber: this.currentLevel });
             }
         });

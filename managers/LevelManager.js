@@ -12,7 +12,8 @@ class LevelManager {
             const levelData = await response.json();
             return levelData;
         } catch (error) {
-            console.error(`Error loading level ${levelNumber}:`, error);
+            console.error(`DETAILED Error loading level ${levelNumber}:`, error);
+            console.error('Error stack:', error.stack);
             return null;
         }
     }
