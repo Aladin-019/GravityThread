@@ -73,8 +73,19 @@ class GameScene extends Phaser.Scene {
             if (this.isPullingBack) {
                 this.isPullingBack = false;
 
-                this.velocityX = this.pullStartX - pointer.x;
-                this.velocityY = this.pullStartY - pointer.y;
+                // Calculate pullback distance for power scaling
+                const pullbackX = this.pullStartX - pointer.x;
+                const pullbackY = this.pullStartY - pointer.y;
+                const pullbackDistance = Math.sqrt(pullbackX * pullbackX + pullbackY * pullbackY);
+                
+                // Scale velocity based on pullback distance
+                const maxPullback = 150;
+                const maxVelocity = 600;
+                const powerScale = Math.min(pullbackDistance / maxPullback, 1.0);
+                
+                // Apply scaled velocity
+                this.velocityX = (pullbackX / pullbackDistance) * (maxVelocity * powerScale);
+                this.velocityY = (pullbackY / pullbackDistance) * (maxVelocity * powerScale);
 
                 this.ship.body.setVelocity(this.velocityX, this.velocityY);
             }
