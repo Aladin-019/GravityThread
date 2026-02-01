@@ -42,6 +42,9 @@ class GameScene extends Phaser.Scene {
         try {
             const Body = this.add.circle(body.x, body.y, body.radius, parseInt(body.color, 16));
             Body.mass = body.mass;
+            
+            this.physics.add.existing(Body, true);
+            
             this.Bodies.add(Body);
         } catch (e) {
             console.error("Failed to parse level data:", error);
@@ -101,6 +104,26 @@ class GameScene extends Phaser.Scene {
         if (this.physics.overlap(this.ship, this.greenZone)) {
             console.log('Level completed!');
             this.scene.start('GameOverScene', { won: true, levelNumber: this.levelNumber });
+            return;
+        }
+
+        // Check if ship collided with any planet
+        let collisionDetected = false;
+        this.Bodies.children.entries.forEach(planet => {
+            // Distance-based collision detection
+            const dx = planet.x - this.ship.x;
+            const dy = planet.y - this.ship.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const collisionRadius = planet.radius + 8; // Ship half-size buffer
+            
+            if (distance < collisionRadius) {
+                collisionDetected = true;
+            }
+        });
+        
+        if (collisionDetected) {
+            console.log('Ship crashed!');
+            this.scene.start('GameOverScene', { won: false, levelNumber: this.levelNumber });
             return;
         }
 
