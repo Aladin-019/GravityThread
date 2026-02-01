@@ -127,6 +127,15 @@ class GameScene extends Phaser.Scene {
             return;
         }
 
+        // Check if ship went out of bounds
+        const bounds = this.cameras.main;
+        if (this.ship.x > bounds.width || this.ship.y > bounds.height || 
+            this.ship.x < 0 || this.ship.y < 0) {
+            console.log('Ship missed the green zone!');
+            this.scene.start('GameOverScene', { won: false, levelNumber: this.levelNumber });
+            return;
+        }
+
         // Apply gravity to ship if it's moving
         if (this.ship.body.velocity.x !== 0 || this.ship.body.velocity.y !== 0) {
             
