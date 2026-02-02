@@ -6,21 +6,21 @@
       "y": 150,
       "radius": 40,
       "mass": 6000,
-      "color": "#FFD700"
+      "color": "FFD700"
     },
     {
       "x": 700,
       "y": 300,
       "radius": 80,
       "mass": 15000,
-      "color": "#8b4513"
+      "color": "8b4513"
     },
     {
       "x": 950,
       "y": 500,
       "radius": 45,
       "mass": 7000,
-      "color": "#4169E1"
+      "color": "4169E1"
     }
   ],
   "greenZone": {

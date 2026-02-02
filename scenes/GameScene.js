@@ -11,8 +11,9 @@ class GameScene extends Phaser.Scene {
     }
 
     preload() {
-        // Load level-specific assets
-        this.load.json(`level${this.levelNumber}`, `levels/level${this.levelNumber}.json`);
+        // Load level-specific assets with cache busting
+        const timestamp = Date.now();
+        this.load.json(`level${this.levelNumber}`, `levels/level${this.levelNumber}.json?v=${timestamp}`);
     }
 
     create() {

@@ -10,8 +10,8 @@
     }
   ],
   "greenZone": {
-    "top": 225,
-    "bottom": 375,
+    "top": 175,
+    "bottom": 450,
     "width": 20
   },
   "shipStart": {
