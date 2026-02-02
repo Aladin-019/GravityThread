@@ -14,6 +14,9 @@ class GameScene extends Phaser.Scene {
         // Load level-specific assets with cache busting
         const timestamp = Date.now();
         this.load.json(`level${this.levelNumber}`, `levels/level${this.levelNumber}.json?v=${timestamp}`);
+        
+        // Load ship sprite
+        this.load.image('ship', 'assets/UFO_basic.png');
     }
 
     create() {
@@ -33,7 +36,13 @@ class GameScene extends Phaser.Scene {
         }
 
         // Create ship
-        this.ship = this.add.rectangle(this.levelData.shipStart.x, this.levelData.shipStart.y, 15, 20, 0xff6600);
+        this.ship = this.add.sprite(this.levelData.shipStart.x, this.levelData.shipStart.y, 'ship');
+        this.ship.setScale(0.5); // Adjust size as needed
+        
+        // Reset any blend modes/tints that might make it black
+        this.ship.setTint(0xffffff); // White tint (normal)
+        this.ship.setBlendMode(Phaser.BlendModes.NORMAL); // Normal blend
+        
         this.physics.add.existing(this.ship);
         this.ship.body.setCollideWorldBounds(false);
 
