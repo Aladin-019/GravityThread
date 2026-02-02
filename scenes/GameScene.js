@@ -76,12 +76,23 @@ class GameScene extends Phaser.Scene {
         this.isPullingBack = false;
         this.pullStartX = 0;
         this.pullStartY = 0;
+        
+        // Create graphics objects for visual effects
+        this.aimingArrow = this.add.graphics();
 
         this.input.on('pointerdown', (pointer) => {
             this.isPullingBack = true;
             this.pullStartX = pointer.x;
             this.pullStartY = pointer.y;
         });
+        
+        // Add pointer move for real-time visual feedback
+        this.input.on('pointermove', (pointer) => {
+            if (this.isPullingBack) {
+                this.updateVisualEffects(pointer);
+            }
+        });
+        
         this.input.on('pointerup', (pointer) => {
             if (this.isPullingBack) {
                 this.isPullingBack = false;
@@ -101,8 +112,78 @@ class GameScene extends Phaser.Scene {
                 this.velocityY = (pullbackY / pullbackDistance) * (maxVelocity * powerScale);
 
                 this.ship.body.setVelocity(this.velocityX, this.velocityY);
+                
+                // Clear visual effects
+                this.aimingArrow.clear();
             }
         });
+    }
+
+    updateVisualEffects(pointer) {
+        // Clear previous drawings
+        this.aimingArrow.clear();
+        
+        // Calculate pullback
+        const pullbackX = this.pullStartX - pointer.x;
+        const pullbackY = this.pullStartY - pointer.y;
+        const distance = Math.sqrt(pullbackX * pullbackX + pullbackY * pullbackY);
+        const maxPullback = 150;
+        const powerPercent = Math.min(distance / maxPullback, 1.0);
+        
+        // Color interpolation from green (weak) to red (strong)
+        const color = Phaser.Display.Color.Interpolate.ColorWithColor(
+            {r: 0, g: 255, b: 0},
+            {r: 255, g: 0, b: 0},
+            100,
+            Math.floor(powerPercent * 100)
+        );
+        const circleColor = Phaser.Display.Color.GetColor(color.r, color.g, color.b);
+        
+        // Draw circle at cursor
+        const minRadius = 8;
+        const maxRadius = 25;
+        const circleRadius = minRadius + (maxRadius - minRadius) * powerPercent;
+        
+        // Draw cone connecting ship to circle
+        const shipX = this.ship.x;
+        const shipY = this.ship.y;
+        const cursorX = pointer.x;
+        const cursorY = pointer.y;
+        
+        // Calculate perpendicular direction for cone width
+        const dx = cursorX - shipX;
+        const dy = cursorY - shipY;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        
+        if (length > 0) {
+            // Perpendicular vector
+            const perpX = -dy / length;
+            const perpY = dx / length;
+            
+            // Cone points at circle edges
+            const coneWidth = circleRadius * 0.8;
+            const leftX = cursorX + perpX * coneWidth;
+            const leftY = cursorY + perpY * coneWidth;
+            const rightX = cursorX - perpX * coneWidth;
+            const rightY = cursorY - perpY * coneWidth;
+            
+            // Draw cone
+            this.aimingArrow.fillStyle(circleColor, 0.2);
+            this.aimingArrow.beginPath();
+            this.aimingArrow.moveTo(shipX, shipY);
+            this.aimingArrow.lineTo(leftX, leftY);
+            this.aimingArrow.lineTo(rightX, rightY);
+            this.aimingArrow.closePath();
+            this.aimingArrow.fillPath();
+        }
+        
+        // Draw circle on top of cone
+        this.aimingArrow.fillStyle(circleColor, 0.8);
+        this.aimingArrow.fillCircle(cursorX, cursorY, circleRadius);
+        
+        // Add border for better visibility
+        this.aimingArrow.lineStyle(2, circleColor);
+        this.aimingArrow.strokeCircle(cursorX, cursorY, circleRadius);
     }
 
     update() {
@@ -155,7 +236,7 @@ class GameScene extends Phaser.Scene {
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance > 20) {
-                    const force = (planet.mass * 2.0) / (distance * distance);
+                    const force = (planet.mass * 5.0) / (distance * distance);
 
                     const accelX = force * (dx / distance);
                     const accelY = force * (dy / distance);
