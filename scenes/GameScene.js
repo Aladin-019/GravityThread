@@ -37,11 +37,49 @@ class GameScene extends Phaser.Scene {
 
         // Create ship
         this.ship = this.add.sprite(this.levelData.shipStart.x, this.levelData.shipStart.y, 'ship');
-        this.ship.setScale(0.5); // Adjust size as needed
+        this.ship.setScale(0); // Start invisible for animation
         
         // Reset any blend modes/tints that might make it black
         this.ship.setTint(0xffffff); // White tint (normal)
         this.ship.setBlendMode(Phaser.BlendModes.NORMAL); // Normal blend
+        
+        // Animate ship appearing with bounce effect
+        this.tweens.add({
+            targets: this.ship,
+            scale: 0.5,
+            duration: 1000,
+            ease: 'Bounce.easeOut',
+            delay: 200
+        });
+
+        // Show level announcement
+        const levelText = this.add.text(600, 100, `Level ${this.levelNumber}`, {
+            fontSize: '36px',
+            fontFamily: 'Arial',
+            color: '#00ff73',
+            fontStyle: 'bold'
+        }).setOrigin(0.5).setAlpha(0).setScale(0.5);
+
+        // Animate level text in and out
+        this.tweens.add({
+            targets: levelText,
+            alpha: 1,
+            scale: 1,
+            duration: 600,
+            ease: 'Back.easeOut',
+            delay: 300,
+            onComplete: () => {
+                // Hold for a moment, then fade out
+                this.tweens.add({
+                    targets: levelText,
+                    alpha: 0,
+                    scale: 1.2,
+                    duration: 800,
+                    ease: 'Power2.easeIn',
+                    delay: 1500
+                });
+            }
+        });
         
         this.physics.add.existing(this.ship);
         this.ship.body.setCollideWorldBounds(false);

@@ -19,18 +19,38 @@ class GameOverScene extends Phaser.Scene {
         this.cameras.main.setBackgroundColor('#0a0a1a');
         
         if (this.won) {
-            this.add.text(600, 200, 'Mission Accomplished!', {
+            // Create title text with initial scale of 0 (invisible)
+            const titleText = this.add.text(600, 200, 'Mission Accomplished!', {
                 fontSize: '48px',
                 fontFamily: 'Arial',
                 color: '#00ff73',
                 fontStyle: 'bold'
-            }).setOrigin(0.5);
+            }).setOrigin(0.5).setScale(0);
 
-            this.add.text(600, 280, 'You made it home!', {
+            // Animate title scaling up with bounce effect
+            this.tweens.add({
+                targets: titleText,
+                scale: 1,
+                duration: 800,
+                ease: 'Back.easeOut',
+                delay: 200
+            });
+
+            // Create subtitle with initial alpha of 0 (transparent)
+            const subtitleText = this.add.text(600, 280, 'You made it home!', {
                 fontSize: '24px',
                 fontFamily: 'Arial',
                 color: '#d0ff00'
-            }).setOrigin(0.5);
+            }).setOrigin(0.5).setAlpha(0);
+
+            // Fade in subtitle after title animation
+            this.tweens.add({
+                targets: subtitleText,
+                alpha: 1,
+                duration: 600,
+                ease: 'Power2.easeOut',
+                delay: 800
+            });
 
             // Check if there's a next level
             const nextLevel = this.levelNumber + 1;
@@ -72,18 +92,39 @@ class GameOverScene extends Phaser.Scene {
                 });
             }
         } else {
-            this.add.text(600, 200, 'Mission Failed', {
+            // Create failed title with shake effect
+            const failText = this.add.text(600, 200, 'Mission Failed', {
                 fontSize: '48px',
                 fontFamily: 'Arial',
                 color: '#ff4800',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
 
-            this.add.text(600, 280, 'Ship crashed!', {
+            // Shake animation for dramatic effect
+            this.tweens.add({
+                targets: failText,
+                x: 605,
+                duration: 50,
+                ease: 'Power2.easeInOut',
+                yoyo: true,
+                repeat: 5
+            });
+
+            // Create crash text that slides in from left
+            const crashText = this.add.text(-100, 280, 'Ship crashed!', {
                 fontSize: '24px',
                 fontFamily: 'Arial',
                 color: '#ffffff'
             }).setOrigin(0.5);
+
+            // Slide in crash text
+            this.tweens.add({
+                targets: crashText,
+                x: 600,
+                duration: 700,
+                ease: 'Power2.easeOut',
+                delay: 500
+            });
 
             this.add.text(600, 350, 'Click to try again', {
                 fontSize: '18px',
