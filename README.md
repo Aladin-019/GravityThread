@@ -1,6 +1,6 @@
 # Gravity Thread
 
-A 2D gravity-based puzzle game where you navigate a rocket through celestial bodies to reach the green zone.
+A 2D gravity-based puzzle game built with **Phaser 3**. Navigate a rocket through celestial bodies to reach the green zone.
 
 ## How to Play
 
@@ -10,14 +10,14 @@ A 2D gravity-based puzzle game where you navigate a rocket through celestial bod
 4. Reach the green zone on the right side of the screen to complete the level
 
 ## Future updates
-1. Integrate game engine for animations and sounds
-2. Ship customization
-3. More levels!
+
+1. Ship customization
+2. More levels!
 
 ## Requirements
 
-- Browser
-- A web server 
+- A modern browser
+- A local web server (Phaser loads assets via HTTP, so `file://` won't work)
 
 ### Installing a Web Server
 
@@ -48,44 +48,53 @@ node --version
 
 ### Running Locally
 
+**From the `GravityThread` folder** (where `index.html` lives):
+
 **Option 1: Python**
 ```bash
+cd GravityThread
 python -m http.server 8000
 ```
 Then open `http://localhost:8000` in your browser.
 
 **Option 2: VS Code Live Server**
 - Install the "Live Server" extension in VS Code
-- Right-click `index.html` → "Open with Live Server"
+- Right-click `index.html` in the `GravityThread` folder → "Open with Live Server"
 
 **Option 3: Node.js**
 ```bash
+cd GravityThread
 npx http-server -p 8000
 ```
+Then open `http://localhost:8000` in your browser.
 
 ## Architecture
 
-This project uses the MVC (Model-View-Controller) pattern:
+This project uses **Phaser 3** with a scene-based structure:
 
-- Model (`model/GameModel.js`): Manages game state (ship, celestial bodies, levels)
-- View (`view/Renderer.js`): Handles all canvas drawing and rendering
-- Controller (`controller/GameController.js`): Handles physics, collisions, input, and game loop
+- **MenuScene** (`scenes/MenuScene.js`): Main menu and level selection
+- **GameScene** (`scenes/GameScene.js`): Core gameplay, physics, collisions, and input
+- **GameOverScene** (`scenes/GameOverScene.js`): Win/lose screens
+- **LevelManager** (`managers/LevelManager.js`): Loads and manages level data from JSON
+
+Phaser handles rendering, the game loop, and physics (Arcade). Custom gravity is applied manually in `GameScene`.
 
 ## Features
 
 - Pull-back and launch mechanics
 - Gravity physics using inverse square law
 - Multiple celestial body types with custom colors
+- Phaser 3 for rendering, animations, and game loop
 
 ## Customizing Levels
 
 Levels are defined in JSON files under the `levels/` directory. Each level can include:
 
-- celestialBodies: Array of celestial bodies with x, y, radius, mass, and color
-- greenZone: Win condition zone
-- shipStart: Initial ship position
+- `celestialBodies`: Array of celestial bodies with x, y, radius, mass, and color
+- `greenZone`: Win condition zone
+- `shipStart`: Initial ship position
 
 ## Technologies
 
-- HTML5 Canvas - Rendering engine
-- Vanilla JavaScript - Game logic and physics
+- **Phaser 3** – Game engine (rendering, scenes, physics, input)
+- Vanilla JavaScript – Game logic and custom gravity

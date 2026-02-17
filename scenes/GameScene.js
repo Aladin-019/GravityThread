@@ -17,12 +17,16 @@ class GameScene extends Phaser.Scene {
         
         // Load ship sprite
         this.load.image('ship', 'assets/UFO_basic.png');
+        
+        // Load star sprite
+        this.load.image('star1', 'assets/star1.png');
     }
 
     create() {
         this.cameras.main.setBackgroundColor('#0a0a1a');
         
         this.ship = null;
+        this.gameEnded = false; // Flag to prevent multiple collision detections
         
         this.initializeGame();
     }
@@ -88,7 +92,10 @@ class GameScene extends Phaser.Scene {
         this.Bodies = this.add.group();
         this.levelData.celestialBodies.forEach(body => {
         try {
-            const Body = this.add.circle(body.x, body.y, body.radius, parseInt(body.color, 16));
+            // Use star sprite instead of circle
+            const Body = this.add.sprite(body.x, body.y, 'star1');
+            Body.setScale(body.radius / 150); // Even smaller scaling
+            // Remove tint - keep natural star colors
             Body.mass = body.mass;
             
             this.physics.add.existing(Body, true);
@@ -155,6 +162,64 @@ class GameScene extends Phaser.Scene {
                 this.aimingArrow.clear();
             }
         });
+    }
+
+    addCrashEffects() {
+        console.log('addCrashEffects called!');
+        const shipX = this.ship.x;
+        const shipY = this.ship.y;
+        console.log(`Ship position: ${shipX}, ${shipY}`);
+        
+        console.log('Adding screen shake...');
+        this.cameras.main.shake(500, 0.02);
+        
+        console.log('Adding screen flash...');
+        this.cameras.main.flash(300, 255, 100, 0); // Orange flash
+        
+        console.log('Creating explosion particles...');
+        for (let i = 0; i < 12; i++) {
+            const particle = this.add.circle(shipX, shipY, 3, 0xff4400);
+            const angle = (i / 12) * Math.PI * 2;
+            const speed = 100 + Math.random() * 100;
+            
+            this.tweens.add({
+                targets: particle,
+                x: shipX + Math.cos(angle) * speed,
+                y: shipY + Math.sin(angle) * speed,
+                alpha: 0,
+                scale: 0,
+                duration: 600,
+                ease: 'Power2.easeOut'
+            });
+        }
+        
+        console.log('Adding ship destruction tween...');
+        this.tweens.add({
+            targets: this.ship,
+            scale: 0,
+            angle: 720, // Two full rotations
+            alpha: 0,
+            duration: 400,
+            ease: 'Power2.easeIn'
+        });
+        
+        console.log('Creating explosion rings...');
+        for (let i = 0; i < 3; i++) {
+            const ring = this.add.circle(shipX, shipY, 5, 0xff6600 - (i * 0x001100), 0.6 - (i * 0.1));
+            this.tweens.add({
+                targets: ring,
+                radius: 60 + (i * 20),
+                alpha: 0,
+                duration: 400 + (i * 100),
+                ease: 'Power2.easeOut',
+                delay: i * 50
+            });
+        }
+        
+        console.log('Stopping floating animation...');
+        this.tweens.killTweensOf(this.ship);
+        
+        console.log('All crash effects set up!');
     }
 
     updateVisualEffects(pointer) {
@@ -231,6 +296,9 @@ class GameScene extends Phaser.Scene {
 
         // Ship in green zone check
         if (this.physics.overlap(this.ship, this.greenZone)) {
+            if (this.gameEnded) return;
+            this.gameEnded = true;
+            
             console.log('Level completed!');
             this.scene.start('GameOverScene', { won: true, levelNumber: this.levelNumber });
             return;
@@ -239,11 +307,15 @@ class GameScene extends Phaser.Scene {
         // Check if ship collided with any planet
         let collisionDetected = false;
         this.Bodies.children.entries.forEach(planet => {
-            // Distance-based collision detection
+            // Use actual sprite bounds for collision detection
             const dx = planet.x - this.ship.x;
             const dy = planet.y - this.ship.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
-            const collisionRadius = planet.radius + 8; // Ship half-size buffer
+            
+            // Calculate collision radius based on actual sprite size
+            const planetRadius = (planet.width * planet.scaleX) / 2;
+            const shipRadius = (this.ship.width * this.ship.scaleX) / 2;
+            const collisionRadius = planetRadius + shipRadius;
             
             if (distance < collisionRadius) {
                 collisionDetected = true;
@@ -251,8 +323,23 @@ class GameScene extends Phaser.Scene {
         });
         
         if (collisionDetected) {
-            console.log('Ship crashed!');
-            this.scene.start('GameOverScene', { won: false, levelNumber: this.levelNumber });
+            // Prevent multiple collision detections
+            if (this.gameEnded) return;
+            this.gameEnded = true;
+            
+            console.log('COLLISION! Effects starting...');
+            
+            // Stop the ship immediately
+            this.ship.body.setVelocity(0, 0);
+            
+            // Add crash effects before transitioning
+            this.addCrashEffects();
+            
+            // Delay scene transition to show effects
+            this.time.delayedCall(2000, () => { // Longer delay for testing
+                console.log('Effects should be done, transitioning...');
+                this.scene.start('GameOverScene', { won: false, levelNumber: this.levelNumber });
+            });
             return;
         }
 
@@ -260,6 +347,9 @@ class GameScene extends Phaser.Scene {
         const bounds = this.cameras.main;
         if (this.ship.x > bounds.width || this.ship.y > bounds.height || 
             this.ship.x < 0 || this.ship.y < 0) {
+            if (this.gameEnded) return;
+            this.gameEnded = true;
+            
             console.log('Ship missed the green zone!');
             this.scene.start('GameOverScene', { won: false, levelNumber: this.levelNumber });
             return;
